@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Ads Optimisation Checklist</title>
+  <style>
+    :root{ --bg:#0f1221; --panel:#171a2e; --panel-2:#1f2340; --text:#e8ecff; --muted:#aab1d9; --accent:#7c5cff; --accent-2:#00e0b8; --good:#3ee577; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
+
+    .container{max-width:980px;margin:0 auto;padding:24px}
+    .header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.08)}
+    .title h1{margin:0;font-size:20px}
+    .subtitle{font-size:13px;color:var(--muted)}
+    .btn{background:var(--panel-2);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 10px;color:var(--text);cursor:pointer}
+    .btn.small{padding:6px 8px;font-size:12px}
+
+    .grid{display:grid;gap:16px;margin-top:16px}
+    .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px}
+
+    .progress{height:12px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden}
+    .progress .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+
+    .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .stat{background:var(--panel-2);border:1px solid rgba(255,255,255,.12);padding:8px 10px;border-radius:10px}
+
+    .section{border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+    .section-header{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;font-weight:800;color:#fff}
+    .section-left{display:flex;gap:10px;align-items:center}
+    .section-left .chevron{transition:transform .25s ease}
+    .section.collapsed .section-left .chevron{transform:rotate(-90deg)}
+    .section-right{display:flex;gap:8px;align-items:center}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:12px;color:#fff}
+
+    .task-list{padding:0 14px 14px 14px;display:grid;gap:8px;background:var(--panel)}
+    .task{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid rgba(255,255,255,.1);padding:10px;border-radius:10px;position:relative}
+    .task input{accent-color:var(--accent)}
+    .task .spacer{flex:1}
+    .task.is-na{opacity:.6; filter:grayscale(.1)}
+
+    .add-row{display:flex;gap:8px;padding:0 14px 14px 14px;background:var(--panel)}
+    .add-row input{flex:1;background:var(--panel-2);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:8px 10px;border-radius:10px}
+
+    .toast{position:fixed;bottom:16px;right:16px;background:var(--panel);border:1px solid rgba(255,255,255,.12);padding:10px 12px;border-radius:10px;opacity:0;transform:translateY(6px);transition:.25s}
+    .toast.show{opacity:1;transform:none}
+
+    /* Subtle spark/flare on checkbox check */
+    .spark{position:absolute;width:20px;height:20px;left:14px;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+    .spark::after{content:"";position:absolute;inset:-6px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95) 0%, rgba(124,92,255,.6) 40%, rgba(124,92,255,0) 70%);opacity:0;transform:scale(.5);animation:spark .5s ease-out forwards;filter:blur(1px)}
+    @keyframes spark{0%{opacity:0;transform:scale(.5)}40%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.4)}}
+
+    /* Disabled section */
+    .section.is-disabled{opacity:.55; filter:grayscale(.1)}
+    .section.is-disabled .task-list, .section.is-disabled .add-row{pointer-events:none}
+
+    canvas#confetti{position:fixed;inset:0;pointer-events:none}
+    .footer{margin-top:24px;font-size:12px;color:var(--muted);text-align:center}
+
+    /* Section color themes */
+    .section.search .section-header{background:#6a5acd}
+    .section.pmax_leads .section-header{background:#ff6f61}
+    .section.pmax_shop .section-header{background:#20b2aa}
+    .section.local_pmax .section-header{background:#8a2be2}
+    .section.demandgen .section-header{background:#ffa500}
+    .section.video .section-header{background:#2e8b57}
+    .section.app .section-header{background:#4682b4}
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="container">
+    <div class="header">
+      <div class="title">
+        <h1>Google Ads Optimisation Checklist</h1>
+        <div class="subtitle">Optimisation by campaign type</div>
+      </div>
+      <div class="toolbar" style="display:flex;gap:8px;align-items:center">
+        <button class="btn" id="exportBtn">📤 Export</button>
+        <button class="btn" id="importBtn">📥 Import</button>
+        <button class="btn" id="resetBtn">🧹 Reset</button>
+      </div>
+    </div>
+
+    <!-- Overall Progress + Stats -->
+    <div class="panel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="font-weight:800">Overall Progress</div>
+        <span class="badge" id="overallPct">0%</span>
+      </div>
+      <div class="progress" aria-label="Overall progress">
+        <div class="bar" id="overallBar"></div>
+      </div>
+      <div class="stats">
+        <div class="stat">⭐ XP: <span id="xp" style="margin-left:6px">0</span></div>
+        <div class="stat">🏅 Level: <span id="level" style="margin-left:6px">1</span></div>
+        <div class="stat">🎯 Completed: <span id="done" style="margin-left:6px">0</span>/<span id="total">0</span></div>
+        <div class="stat">🏆 Badges: <span id="badgeCount" style="margin-left:6px">0</span></div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-weight:800">Achievements</div>
+        <div class="badge">Complete a section to earn a trophy</div>
+      </div>
+      <div id="badges" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+
+    <!-- Sections -->
+    <div class="grid" id="sections"></div>
+
+    <div class="toast" id="toast">Done</div>
+
+    <div class="footer">Made with ❤️ for enjoyable weekly optimisations. Data is saved locally in your browser.</div>
+  </div>
+
+  <script>
+    const $ = (s,el=document)=>el.querySelector(s);
+    const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+    const STORAGE_KEY = 'gads_checklist_gamified_restore_v12';
+    const XP_PER_TASK = 10;
+
+    const SECTIONS = [
+      { id:'search', title:'🔍 Search Campaigns', tasks:[
+        'Review Search Terms & add negatives','Check Quality Scores (Ad Relevance, CTR, LP Exp)','Refresh RSA copy (pin strategically)','Audit extensions (Sitelinks, Callouts, Snippets, Call/Location)','Refine match types & apply shared negatives','Align bidding to tCPA/tROAS & review 2–4 wks','Route traffic to intent-matched landing pages','Verify enhanced conversions']},
+      { id:'pmax_leads', title:'🏆 PMAX for Leads', tasks:[
+        'Structure asset groups by service/persona theme','Upload images + videos (no auto-generated gaps)','Feed first-party audiences (CRM/remarketing)','Optimise to qualified events / offline import','Review Search Term Insights & add negatives','Rotate/replace weak assets','Align landing pages to asset groups']},
+      { id:'pmax_shop', title:'🛒 PMAX for Shopping', tasks:[
+        'Optimise feed (titles, desc, GTIN, attributes, images)','Segment by margin/category with custom labels','Set bidding per segment (Max Value vs tROAS)','Monitor product-level performance; exclude poor SKUs','Use brand exclusions to protect Search','Upload lifestyle/video assets for extra inventory']},
+      { id:'local_pmax', title:'📍 Local PMAX', tasks:[
+        'Verify Google Business Profile linking','Ensure location extensions are active','Use store visit or local action conversions','Optimise asset groups with local imagery','Review distance & location reports','Set appropriate radius targeting','Monitor offline sales impact']},
+      { id:'demandgen', title:'🎥 Demand Gen', tasks:[
+        'Layer first-party + custom intent audiences','Provide short + long video variations with strong CTAs','Test formats (in-feed/in-stream/shorts) & statics','Start with Max Conversions/tCPA; scale by performance','Match landing pages to funnel stage','Measure view-through + run incrementality tests']},
+      { id:'video', title:'📺 Video Campaigns', tasks:[
+        'Upload multiple video orientations (landscape/portrait/square)','Use strong CTAs and engaging storylines','Test skippable + non-skippable formats','Optimise for reach, views, or conversions','Link to relevant landing pages or app store','Use audience signals (custom segments, remarketing)','Measure brand lift, view-through, and conversions']},
+      { id:'app', title:'📱 App Campaigns', tasks:[
+        'Choose subtype (Installs/Engagement/Pre-Reg) & deep links','Upload text, images, videos (portrait + landscape)','Audience signals: category keywords, competitor apps, CRM','Pick tCPI or tROAS; ensure 50+ conversions/wk','Integrate Firebase/SDK or S2S; optimise downstream events','Split by geo/OS and monitor retention/LTV']}
+    ];
+
+    // ----- State -----
+    let state = loadState();
+    function loadState(){
+      try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { ticks:{}, xp:0, badges:[], celebrated:false, disabledSections:{}, collapsedSections:{} } }
+      catch(e){ return { ticks:{}, xp:0, badges:[], celebrated:false, disabledSections:{}, collapsedSections:{} } }
+    }
+    function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    // ----- UI Build -----
+    function build(){
+      const sectionsEl = document.getElementById('sections');
+      sectionsEl.innerHTML='';
+
+      SECTIONS.forEach((section)=>{
+        const sec = document.createElement('div'); sec.className='section'; sec.dataset.section = section.id; sec.classList.add(section.id);
+        if(state.disabledSections[section.id]) sec.classList.add('is-disabled');
+        if(state.collapsedSections[section.id]) sec.classList.add('collapsed');
+
+        const header = document.createElement('div'); header.className='section-header';
+        const left = document.createElement('div'); left.className='section-left'; left.innerHTML = `<span class="chevron">▾</span> <span>${section.title}</span>`;
+        const right = document.createElement('div'); right.className='section-right';
+        right.innerHTML = `<span class="badge" data-pct>0%</span> <button class="btn small" data-add>➕ Add Task</button> <button class="btn small" data-toggle>${state.disabledSections[section.id] ? 'Enable' : 'Disable'}</button>`;
+        header.appendChild(left); header.appendChild(right);
+
+        const list = document.createElement('div'); list.className='task-list';
+
+        // Built-in tasks
+        section.tasks.forEach((t,i)=>{
+          const id = `${section.id}::${i}`;
+          addTaskEl(list, section.id, t, id, !!state.ticks[id]?.done, false);
+        });
+        // Custom tasks (persisted)
+        Object.keys(state.ticks).filter(k=>k.startsWith(section.id+'::custom::')).forEach(cid=>{
+          const saved = state.ticks[cid];
+          addTaskEl(list, section.id, saved.label || 'Custom task', cid, !!saved.done, true);
+        });
+
+        // Add row UI
+        const addRow = document.createElement('div');
+        addRow.className = 'add-row';
+        addRow.innerHTML = `<input type="text" placeholder="Add a custom task to ${section.title}…" aria-label="Add task"><button class="btn small">Add</button>`;
+        addRow.querySelector('button').addEventListener('click', ()=>{
+          const value = addRow.querySelector('input').value.trim();
+          if(!value) return;
+          const id = `${section.id}::custom::${crypto.randomUUID ? crypto.randomUUID() : ('id-'+Math.random().toString(36).slice(2))}`;
+          state.ticks[id] = { done:false, label:value };
+          addTaskEl(list, section.id, value, id, false, true);
+          addRow.querySelector('input').value = '';
+          persist();
+          updateStats();
+        });
+
+        // Collapse/expand
+        header.addEventListener('click', (e)=>{
+          if(e.target.closest('button')) return; // ignore when clicking Add/Toggle
+          toggleCollapse(section.id);
+        });
+
+        // Toggle enable/disable
+        right.querySelector('[data-toggle]').addEventListener('click', (e)=>{
+          e.stopPropagation();
+          toggleSection(section.id, !state.disabledSections[section.id]);
+        });
+
+        sec.appendChild(header); sec.appendChild(list); sec.appendChild(addRow);
+        if(state.collapsedSections[section.id]){ list.style.display='none'; addRow.style.display='none'; sec.classList.add('collapsed'); }
+        sectionsEl.appendChild(sec);
+      });
+
+      updateStats();
+    }
+
+    function toggleCollapse(sectionId){
+      const secEl = document.querySelector(`.section[data-section="${sectionId}"]`);
+      const list = secEl.querySelector('.task-list');
+      const addRow = secEl.querySelector('.add-row');
+      const chevron = secEl.querySelector('.chevron');
+      const collapsed = !state.collapsedSections[sectionId];
+      if(collapsed){
+        state.collapsedSections[sectionId] = true;
+        secEl.classList.add('collapsed');
+        if(chevron) chevron.textContent = '▸';
+        list.style.display='none'; addRow.style.display='none';
+      } else {
+        delete state.collapsedSections[sectionId];
+        secEl.classList.remove('collapsed');
+        if(chevron) chevron.textContent = '▾';
+        list.style.display='grid'; addRow.style.display='flex';
+      }
+      persist();
+    }
+
+    function toggleSection(sectionId, shouldDisable){
+      const secEl = document.querySelector(`.section[data-section="${sectionId}"]`);
+      const btn = secEl?.querySelector('[data-toggle]');
+      if(shouldDisable){ state.disabledSections[sectionId]=true; secEl?.classList.add('is-disabled'); if(btn) btn.textContent='Enable'; }
+      else { delete state.disabledSections[sectionId]; secEl?.classList.remove('is-disabled'); if(btn) btn.textContent='Disable'; }
+      persist();
+      updateStats();
+    }
+
+    function addTaskEl(parent, sectionId, label, id, checked=false, isCustom=false){
+      const row = document.createElement('label'); row.className='task'; row.dataset.id = id;
+      const isNA = !!state.ticks[id]?.na;
+      row.classList.toggle('is-na', isNA);
+      row.innerHTML = `<input type="checkbox" ${checked && !isNA ? 'checked':''} ${isNA? 'disabled':''}><div>${escapeHtml(label)}</div><span class="spacer"></span><button class="btn small" data-na>${isNA? 'Clear N/A':'N/A'}</button>${isCustom? ' <button class="btn small" data-del>🗑️</button>':''}`;
+      const cb = row.querySelector('input');
+      const naBtn = row.querySelector('[data-na]');
+
+      cb.addEventListener('change',()=>{
+        if(cb.checked) makeSpark(cb);
+        const existed = !!state.ticks[id]?.done;
+        const na = !!state.ticks[id]?.na;
+        state.ticks[id] = { done:cb.checked, label, na };
+        if(!existed && cb.checked){ state.xp += XP_PER_TASK; }
+        persist();
+        updateStats();
+        checkSectionBadge(sectionId);
+      });
+
+      // N/A toggle
+      naBtn.addEventListener('click',(e)=>{
+        e.preventDefault(); e.stopPropagation();
+        const wasNA = !!state.ticks[id]?.na;
+        state.ticks[id] = { label, done:false, na: !wasNA };
+        row.classList.toggle('is-na', !wasNA);
+        cb.checked = false; cb.disabled = !wasNA;
+        naBtn.textContent = !wasNA ? 'Clear N/A' : 'N/A';
+        persist();
+        updateStats();
+        checkSectionBadge(sectionId);
+      });
+
+      if(isCustom){
+        const del = row.querySelector('[data-del]');
+        del.addEventListener('click',(e)=>{
+          e.preventDefault(); e.stopPropagation();
+          if(confirm('Delete this task?')){ delete state.ticks[id]; row.remove(); persist(); updateStats(); }
+        });
+      }
+      parent.appendChild(row);
+    }
+
+    // Helper: enabled & countable tasks (exclude disabled sections & N/A)
+    function enabledTaskElements(){
+      return $$('.section:not(.is-disabled) .task').filter(el=> !state.ticks[el.dataset.id]?.na);
+    }
+
+    // ----- Stats, Levels, Badges -----
+    function updateStats(){
+      const allTaskEls = enabledTaskElements();
+      const total = allTaskEls.length;
+      const done = allTaskEls.filter(el=> state.ticks[el.dataset.id]?.done).length;
+      const pct = total? Math.round(done/total*100) : 0;
+
+      document.getElementById('total').textContent = total;
+      document.getElementById('done').textContent = done;
+      document.getElementById('overallPct').textContent = pct + '%';
+      document.getElementById('overallBar').style.width = pct + '%';
+
+      document.getElementById('xp').textContent = state.xp;
+      document.getElementById('level').textContent = 1 + Math.floor(state.xp/100);
+
+      // per-section percentages
+      SECTIONS.forEach(section=>{
+        const secEl = document.querySelector(`.section[data-section="${section.id}"]`);
+        const badge = $('[data-pct]', secEl);
+        if(state.disabledSections[section.id]){ badge.textContent = 'Disabled'; return; }
+        const listEls = $$('.task', secEl).filter(el=> !state.ticks[el.dataset.id]?.na);
+        const sTotal = listEls.length;
+        const sDone = listEls.filter(el=> state.ticks[el.dataset.id]?.done).length;
+        const sPct = sTotal? Math.round((sDone/sTotal)*100) : 0;
+        badge.textContent = sPct + '%';
+      });
+
+      // confetti gating (based on enabled & non‑NA tasks only)
+      if(pct===100 && total>0 && !state.celebrated){ confettiBurst(3); state.celebrated=true; persist(); }
+      if(pct<100 && state.celebrated){ state.celebrated=false; persist(); }
+
+      renderBadges();
+    }
+
+    function checkSectionBadge(sectionId){
+      if(state.disabledSections[sectionId]) return; // no badges when disabled
+      const secEl = document.querySelector(`.section[data-section="${sectionId}"]`);
+      const listEls = $$('.task', secEl).filter(el=> !state.ticks[el.dataset.id]?.na);
+      if(listEls.length===0) return; // avoid awarding on all N/A
+      const allDone = listEls.every(el=> state.ticks[el.dataset.id]?.done);
+      const badgeId = `badge::${sectionId}`;
+      if(allDone && !state.badges.includes(badgeId)){
+        state.badges.push(badgeId);
+        persist();
+        renderBadges();
+      }
+    }
+
+    function renderBadges(){
+      const cont = document.getElementById('badges'); cont.innerHTML = '';
+      const labelMap = {
+        'badge::search':'🔍 Search Master',
+        'badge::pmax_leads':'🏆 Lead Legend',
+        'badge::pmax_shop':'🛒 Shopping Sensei',
+        'badge::local_pmax':'📍 Local Legend',
+        'badge::demandgen':'🎥 Demand Gen Dynamo',
+        'badge::video':'📺 Video Visionary',
+        'badge::app':'📱 App Ace'
+      };
+      state.badges.forEach(id=>{
+        const b = document.createElement('div'); b.className='badge'; b.textContent = '🏅 ' + (labelMap[id]||id);
+        cont.appendChild(b);
+      });
+      document.getElementById('badgeCount').textContent = state.badges.length;
+    }
+
+    // ----- Utilities -----
+    function escapeHtml(str){ return str.replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s])); }
+
+    // Subtle spark
+    function makeSpark(cb){ const s=document.createElement('span'); s.className='spark'; cb.parentElement.appendChild(s); setTimeout(()=> s.remove(), 600); }
+
+    // Toast (only for import/export/reset)
+    function showToast(message='Done', duration=1400){
+      const toast = document.getElementById('toast'); if(!toast) return;
+      toast.textContent = message; toast.classList.add('show');
+      clearTimeout(showToast._timer); showToast._timer = setTimeout(()=> toast.classList.remove('show'), duration);
+    }
+
+    // Confetti
+    const conf = document.getElementById('confetti');
+    const ctx = conf.getContext('2d');
+    let confetti = [];
+    function resize(){ conf.width=innerWidth; conf.height=innerHeight }
+    addEventListener('resize', resize); resize();
+    function confettiBurst(mult=1){ const count=120*mult; for(let i=0;i<count;i++){ confetti.push({x:Math.random()*conf.width,y:-10,vx:(Math.random()-0.5)*4,vy:Math.random()*3+2,s:Math.random()*3+2,a:Math.random()*Math.PI,life:120+Math.random()*60,hue:Math.random()*360}); } }
+    function tick(){ ctx.clearRect(0,0,conf.width,conf.height); confetti.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.03; p.a+=0.1; p.life-=1; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=`hsl(${p.hue},90%,60%)`; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.8); ctx.restore(); }); confetti = confetti.filter(p=>p.life>0 && p.y<conf.height+20); requestAnimationFrame(tick); }
+    tick();
+
+    // Export / Import / Reset (toasts here only)
+    document.getElementById('exportBtn').addEventListener('click',()=>{ const data=JSON.stringify(state,null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='gads-checklist-progress.json'; a.click(); URL.revokeObjectURL(url); showToast('Exported'); });
+    document.getElementById('importBtn').addEventListener('click',()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.addEventListener('change',()=>{ const f=inp.files[0]; if(!f) return; const fr=new FileReader(); fr.onload=()=>{ try{ const obj=JSON.parse(fr.result); state=Object.assign({ticks:{}, xp:0, badges:[], celebrated:false, disabledSections:{}, collapsedSections:{}}, obj); persist(); build(); showToast('Imported'); }catch(e){ alert('Invalid JSON'); } }; fr.readAsText(f); }); inp.click(); });
+    document.getElementById('resetBtn').addEventListener('click',()=>{ if(confirm('Clear all progress?')){ state={ticks:{}, xp:0, badges:[], celebrated:false, disabledSections:{}, collapsedSections:{}}; persist(); build(); showToast('Reset complete'); } });
+
+    // Init
+    build();
+  </script>
+</body>
+</html>
